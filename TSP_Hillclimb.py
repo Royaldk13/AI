@@ -1,67 +1,59 @@
 import random
+import math
 
-def randomSolution(tsp):
-           
-    cities = list(range(len(tsp)))
-    solution = []
+# Calculate the total distance of the tour
+def total_distance(tour, distances):
+    distance = 0
+    for i in range(len(tour)):
+        distance += distances[tour[i-1]][tour[i]]
+    return distance
 
-    for i in range(len(tsp)):
-              
-        randomCity = cities[random.randint(0, len(cities) - 1)]
-        solution.append(randomCity)
-        cities.remove(randomCity)
+# Generate a random tour
+def random_tour(cities):
+    tour = list(cities)
+    random.shuffle(tour)
+    return tour
 
-    return solution
+# Swap two cities in the tour
+def swap_cities(tour):
+    new_tour = list(tour)
+    i, j = random.sample(range(len(tour)), 2)
+    new_tour[i], new_tour[j] = new_tour[j], new_tour[i]
+    return new_tour
 
-def routeLength(tsp, solution):
-    routeLength = 0
-    for i in range(len(solution)):
-        routeLength += tsp[solution[i - 1]][solution[i]]
-    return routeLength
+# Hill Climbing algorithm for TSP
+def hill_climbing(cities, distances):
+    current_tour = random_tour(cities)
+    current_distance = total_distance(current_tour, distances)
+    
+    while True:
+        new_tour = swap_cities(current_tour)
+        new_distance = total_distance(new_tour, distances)
+        
+        if new_distance < current_distance:
+            current_tour = new_tour
+            current_distance = new_distance
+        else:
+            break
 
-def getNeighbours(solution):
-    neighbours = []
-    for i in range(len(solution)):
-        for j in range(i + 1, len(solution)):
-            neighbour = solution.copy()
-            neighbour[i] = solution[j]
-            neighbour[j] = solution[i]
-            neighbours.append(neighbour)
-    return neighbours
+    return current_tour, current_distance
 
-def getBestNeighbour(tsp, neighbours):
-    bestRouteLength = routeLength(tsp, neighbours[0])
-    bestNeighbour = neighbours[0]
-    for neighbour in neighbours:
-        currentRouteLength = routeLength(tsp, neighbour)
-        if currentRouteLength < bestRouteLength:
-            bestRouteLength = currentRouteLength
-            bestNeighbour = neighbour
-    return bestNeighbour, bestRouteLength
+# Driver code
+if __name__ == "__main__":
+    # Number of cities
+    cities = [0, 1, 2, 3, 4]
 
-def hillClimbing(tsp):
-    currentSolution = randomSolution(tsp)
-    currentRouteLength = routeLength(tsp, currentSolution)
-    neighbours = getNeighbours(currentSolution)
-    bestNeighbour, bestNeighbourRouteLength = getBestNeighbour(tsp, neighbours)
-
-    while bestNeighbourRouteLength < currentRouteLength:
-        currentSolution = bestNeighbour
-        currentRouteLength = bestNeighbourRouteLength
-        neighbours = getNeighbours(currentSolution)
-        bestNeighbour, bestNeighbourRouteLength = getBestNeighbour(tsp, neighbours)
-
-    return currentSolution, currentRouteLength
-
-def main():
-    tsp = [
-        [0, 400, 500, 300],
-        [400, 0, 300, 500],
-        [500, 300, 0, 400],
-        [300, 500, 400, 0]
+    # Distance matrix (symmetric)
+    distances = [
+        [0, 2, 9, 10, 7],
+        [2, 0, 6, 4, 3],
+        [9, 6, 0, 8, 5],
+        [10, 4, 8, 0, 1],
+        [7, 3, 5, 1, 0]
     ]
 
-    print(hillClimbing(tsp))
-
-if __name__ == "__main__":
-    main()
+    # Solve the TSP using Hill Climbing
+    best_tour, best_distance = hill_climbing(cities, distances)
+    
+    print("Best tour:", best_tour)
+    print("Best distance:", best_distance)
